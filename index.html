@@ -816,6 +816,171 @@ const FFMPEG_SOURCES = [
 ];
 
 
+/* Fetch a URL manually (instead of toBlobURL) so we can show real
+   download progress and detect a stalled/frozen connection instead
+   of hanging forever with no feedback. */
+
+function fetchWithProgress(url, mimeType, onProgress, stallTimeoutMs){
+
+    stallTimeoutMs = stallTimeoutMs || 20000;
+
+    return new Promise(async (resolve, reject) => {
+
+        const controller = new AbortController();
+        let stallTimer;
+
+        function resetStallTimer(){
+
+            clearTimeout(stallTimer);
+
+            stallTimer = setTimeout(() => {
+
+                controller.abort();
+
+            }, stallTimeoutMs);
+
+        }
+
+        function stallMessage(){
+
+            return (
+                "Download stalled — no data received for "
+                + Math.round(stallTimeoutMs / 1000)
+                + "s while fetching "
+                + url
+                + ". নেটওয়ার্ক খুব ধীর, অথবা এই সোর্স আপনার নেটওয়ার্কে ব্লকড।"
+            );
+
+        }
+
+        resetStallTimer();
+
+        try{
+
+            const response =
+                await fetch(url, {signal: controller.signal});
+
+            if(!response.ok){
+
+                clearTimeout(stallTimer);
+
+                reject(new Error(
+                    "HTTP " + response.status + " while fetching " + url
+                ));
+
+                return;
+
+            }
+
+            const contentLength =
+                response.headers.get("Content-Length");
+
+            const total =
+                contentLength ? parseInt(contentLength, 10) : 0;
+
+            if(!response.body){
+
+                const blob = await response.blob();
+
+                clearTimeout(stallTimer);
+
+                onProgress(1, blob.size, blob.size);
+
+                resolve(new Blob([blob], {type: mimeType}));
+
+                return;
+
+            }
+
+            const reader = response.body.getReader();
+
+            let received = 0;
+
+            const chunks = [];
+
+            while(true){
+
+                const {done, value} = await reader.read();
+
+                if(done) break;
+
+                resetStallTimer();
+
+                chunks.push(value);
+
+                received += value.length;
+
+                onProgress(
+                    total ? received / total : 0,
+                    received,
+                    total
+                );
+
+            }
+
+            clearTimeout(stallTimer);
+
+            resolve(new Blob(chunks, {type: mimeType}));
+
+        }catch(err){
+
+            clearTimeout(stallTimer);
+
+            if(err.name === "AbortError"){
+
+                reject(new Error(stallMessage()));
+
+                return;
+
+            }
+
+            reject(err);
+
+        }
+
+    });
+
+}
+
+
+function formatMB(bytes){
+
+    return (bytes / (1024 * 1024)).toFixed(1) + "MB";
+
+}
+
+
+async function loadFileWithProgress(label, url, mimeType){
+
+    const blob = await fetchWithProgress(
+
+        url,
+        mimeType,
+
+        (frac, received, total) => {
+
+            const pct = Math.round(frac * 100);
+
+            progressBar.style.width = pct + "%";
+
+            percentage.textContent = pct + "%";
+
+            progressText.textContent =
+                label
+                + " ডাউনলোড হচ্ছে... "
+                + (total
+                    ? formatMB(received) + " / " + formatMB(total)
+                    : formatMB(received));
+
+        }
+
+    );
+
+    return URL.createObjectURL(blob);
+
+}
+
+
 async function initializeFFmpeg(){
 
     if(ffmpegReady)
@@ -865,30 +1030,40 @@ async function initializeFFmpeg(){
         try{
 
             status.textContent =
-                "Loading conversion engine ("
-                + new URL(src.core).hostname
-                + ")...";
+                new URL(src.core).hostname
+                + " থেকে লোড হচ্ছে...";
+
+            const coreURL =
+                await loadFileWithProgress(
+                    "core.js",
+                    `${src.core}/ffmpeg-core.js`,
+                    "text/javascript"
+                );
+
+            const wasmURL =
+                await loadFileWithProgress(
+                    "core.wasm",
+                    `${src.core}/ffmpeg-core.wasm`,
+                    "application/wasm"
+                );
+
+            const classWorkerURL =
+                await loadFileWithProgress(
+                    "worker.js",
+                    src.worker,
+                    "text/javascript"
+                );
+
+            status.textContent =
+                "ইঞ্জিন চালু হচ্ছে...";
+
+            progressText.textContent =
+                "Starting engine...";
 
             await ffmpeg.load({
-
-                coreURL:
-                    await toBlobURL(
-                        `${src.core}/ffmpeg-core.js`,
-                        "text/javascript"
-                    ),
-
-                wasmURL:
-                    await toBlobURL(
-                        `${src.core}/ffmpeg-core.wasm`,
-                        "application/wasm"
-                    ),
-
-                classWorkerURL:
-                    await toBlobURL(
-                        src.worker,
-                        "text/javascript"
-                    )
-
+                coreURL,
+                wasmURL,
+                classWorkerURL
             });
 
             ffmpegReady = true;
