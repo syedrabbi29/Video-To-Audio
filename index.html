@@ -816,11 +816,81 @@ const FFMPEG_SOURCES = [
 ];
 
 
+/* ===== Local cache for FFmpeg engine files (Cache Storage API) =====
+   Once downloaded, these files never change for a given version, so
+   we keep them in the browser's Cache Storage. Next visit reuses
+   them instantly with no network request at all. */
+
+const FFMPEG_CACHE_NAME = "ffmpeg-engine-cache-v1";
+
+async function getFromCache(url){
+
+    if(!("caches" in window))
+        return null;
+
+    try{
+
+        const cache =
+            await caches.open(FFMPEG_CACHE_NAME);
+
+        const match =
+            await cache.match(url);
+
+        if(!match)
+            return null;
+
+        return await match.blob();
+
+    }catch(e){
+
+        return null;
+
+    }
+
+}
+
+async function saveToCache(url, blob, mimeType){
+
+    if(!("caches" in window))
+        return;
+
+    try{
+
+        const cache =
+            await caches.open(FFMPEG_CACHE_NAME);
+
+        await cache.put(
+            url,
+            new Response(blob, {
+                headers: {"Content-Type": mimeType}
+            })
+        );
+
+    }catch(e){
+
+        // Cache write failing is not critical — conversion still
+        // works, it just won't be instant next time.
+
+    }
+
+}
+
+
 /* Fetch a URL manually (instead of toBlobURL) so we can show real
    download progress and detect a stalled/frozen connection instead
-   of hanging forever with no feedback. */
+   of hanging forever with no feedback. Checks the local cache first. */
 
-function fetchWithProgress(url, mimeType, onProgress, stallTimeoutMs){
+async function fetchWithProgress(url, mimeType, onProgress, stallTimeoutMs){
+
+    const cachedBlob = await getFromCache(url);
+
+    if(cachedBlob){
+
+        onProgress(1, cachedBlob.size, cachedBlob.size);
+
+        return cachedBlob;
+
+    }
 
     stallTimeoutMs = stallTimeoutMs || 20000;
 
@@ -886,7 +956,11 @@ function fetchWithProgress(url, mimeType, onProgress, stallTimeoutMs){
 
                 onProgress(1, blob.size, blob.size);
 
-                resolve(new Blob([blob], {type: mimeType}));
+                const typedBlob = new Blob([blob], {type: mimeType});
+
+                saveToCache(url, typedBlob, mimeType);
+
+                resolve(typedBlob);
 
                 return;
 
@@ -920,7 +994,11 @@ function fetchWithProgress(url, mimeType, onProgress, stallTimeoutMs){
 
             clearTimeout(stallTimer);
 
-            resolve(new Blob(chunks, {type: mimeType}));
+            const finalBlob = new Blob(chunks, {type: mimeType});
+
+            saveToCache(url, finalBlob, mimeType);
+
+            resolve(finalBlob);
 
         }catch(err){
 
@@ -959,7 +1037,8 @@ async function loadFileWithProgress(label, url, mimeType){
 
         (frac, received, total) => {
 
-            const pct = Math.round(frac * 100);
+            const pct =
+                Math.min(100, Math.round(frac * 100));
 
             progressBar.style.width = pct + "%";
 
@@ -977,6 +1056,117 @@ async function loadFileWithProgress(label, url, mimeType){
     );
 
     return URL.createObjectURL(blob);
+
+}
+
+
+/* worker.js (ESM build) internally does:
+       import { ... } from "./const.js";
+       import { ... } from "./errors.js";
+   Those relative imports break once worker.js is turned into a
+   blob: URL, because the blob has no real sibling files — the
+   worker silently fails to start and ffmpeg.load() hangs forever
+   with no error. Fix: fetch const.js/errors.js too, turn THEM into
+   blob URLs, and rewrite worker.js's import lines to point at those
+   blob URLs before creating worker.js's own blob. */
+
+async function buildPatchedWorkerURL(workerScriptURL){
+
+    const workerDir =
+        workerScriptURL.substring(
+            0,
+            workerScriptURL.lastIndexOf("/") + 1
+        );
+
+    async function fetchText(url){
+
+        const cachedBlob = await getFromCache(url);
+
+        if(cachedBlob){
+            return await cachedBlob.text();
+        }
+
+        const res = await fetch(url);
+
+        if(!res.ok){
+
+            throw new Error(
+                "HTTP " + res.status + " while fetching " + url
+            );
+
+        }
+
+        const text = await res.text();
+
+        saveToCache(
+            url,
+            new Blob([text], {type: "text/javascript"}),
+            "text/javascript"
+        );
+
+        return text;
+
+    }
+
+    const [workerText, constText, errorsText] =
+        await Promise.all([
+            fetchText(workerScriptURL),
+            fetchText(workerDir + "const.js"),
+            fetchText(workerDir + "errors.js")
+        ]);
+
+    const constBlobURL =
+        URL.createObjectURL(
+            new Blob([constText], {type: "text/javascript"})
+        );
+
+    const errorsBlobURL =
+        URL.createObjectURL(
+            new Blob([errorsText], {type: "text/javascript"})
+        );
+
+    const patchedWorkerText =
+        workerText
+            .replace(
+                'from "./const.js"',
+                `from "${constBlobURL}"`
+            )
+            .replace(
+                'from "./errors.js"',
+                `from "${errorsBlobURL}"`
+            );
+
+    return URL.createObjectURL(
+        new Blob([patchedWorkerText], {type: "text/javascript"})
+    );
+
+}
+
+
+/* Wrap a promise with a timeout so a silent hang (rather than an
+   error) can never freeze the UI forever. */
+
+function withTimeout(promise, ms, message){
+
+    return new Promise((resolve, reject) => {
+
+        const timer = setTimeout(() => {
+
+            reject(new Error(message));
+
+        }, ms);
+
+        promise
+            .then(value => {
+                clearTimeout(timer);
+                resolve(value);
+            })
+            .catch(err => {
+                clearTimeout(timer);
+                reject(err);
+            });
+
+    });
 
 }
 
@@ -1048,11 +1238,7 @@ async function initializeFFmpeg(){
                 );
 
             const classWorkerURL =
-                await loadFileWithProgress(
-                    "worker.js",
-                    src.worker,
-                    "text/javascript"
-                );
+                await buildPatchedWorkerURL(src.worker);
 
             status.textContent =
                 "ইঞ্জিন চালু হচ্ছে...";
@@ -1060,11 +1246,17 @@ async function initializeFFmpeg(){
             progressText.textContent =
                 "Starting engine...";
 
-            await ffmpeg.load({
-                coreURL,
-                wasmURL,
-                classWorkerURL
-            });
+            await withTimeout(
+                ffmpeg.load({
+                    coreURL,
+                    wasmURL,
+                    classWorkerURL
+                }),
+                60000,
+                "FFmpeg engine did not finish starting within 60 seconds "
+                + "(the worker likely failed to initialize). "
+                + "Try again, or switch to Wi-Fi / a different browser."
+            );
 
             ffmpegReady = true;
 
