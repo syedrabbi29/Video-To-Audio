@@ -302,93 +302,6 @@ summary{
     font-size:10px;
     margin-top:16px;
 }
-
-/* ===== Diagnostic Panel ===== */
-
-.diag{
-    margin-bottom:16px;
-    padding:14px;
-    border-radius:16px;
-    background:#12151b;
-    border:1px solid #252a34;
-}
-
-.diag-title{
-    font-size:13px;
-    font-weight:bold;
-    color:#cdd2db;
-    margin-bottom:10px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-}
-
-.diag-toggle{
-    font-size:11px;
-    color:#7c8494;
-    cursor:pointer;
-    text-decoration:underline;
-}
-
-.diag-row{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:8px 0;
-    border-top:1px solid #1e222b;
-    font-size:12.5px;
-}
-
-.diag-row:first-of-type{
-    border-top:0;
-}
-
-.diag-label{
-    color:#aeb4bf;
-}
-
-.diag-badge{
-    font-weight:bold;
-    padding:3px 10px;
-    border-radius:20px;
-    font-size:11px;
-    white-space:nowrap;
-}
-
-.diag-ok{
-    background:#132a1c;
-    color:#4ade80;
-}
-
-.diag-fail{
-    background:#2a1417;
-    color:#ff7f8b;
-}
-
-.diag-summary{
-    margin-top:11px;
-    padding:11px;
-    border-radius:12px;
-    font-size:12px;
-    line-height:1.6;
-    display:none;
-}
-
-.diag-summary.show{
-    display:block;
-}
-
-.diag-summary.good{
-    background:#0f1f16;
-    color:#7de3a5;
-    border:1px solid #1e3d2a;
-}
-
-.diag-summary.bad{
-    background:#241316;
-    color:#ffb5bc;
-    border:1px solid #63252e;
-}
 </style>
 </head>
 
@@ -402,36 +315,6 @@ summary{
         <div class="subtitle">
             Convert video files into audio directly in your browser
         </div>
-    </div>
-
-    <!-- ===== Diagnostic Panel ===== -->
-    <div class="diag" id="diagPanel">
-        <div class="diag-title">
-            <span>🩺 System Check</span>
-            <span class="diag-toggle" id="diagRecheck">Recheck</span>
-        </div>
-
-        <div class="diag-row">
-            <span class="diag-label">Connection (HTTPS)</span>
-            <span class="diag-badge" id="diagHttps">Checking...</span>
-        </div>
-
-        <div class="diag-row">
-            <span class="diag-label">Cross-Origin Isolation</span>
-            <span class="diag-badge" id="diagCoi">Checking...</span>
-        </div>
-
-        <div class="diag-row">
-            <span class="diag-label">SharedArrayBuffer</span>
-            <span class="diag-badge" id="diagSab">Checking...</span>
-        </div>
-
-        <div class="diag-row">
-            <span class="diag-label">WebAssembly</span>
-            <span class="diag-badge" id="diagWasm">Checking...</span>
-        </div>
-
-        <div class="diag-summary" id="diagSummary"></div>
     </div>
 
     <div class="card">
@@ -456,7 +339,7 @@ summary{
         <div class="settings" id="settings">
 
             <div class="setting">
-                <label>Audio Format</label>
+                <label>🎵 Audio Format</label>
 
                 <select id="format">
                     <option value="mp3">MP3</option>
@@ -467,7 +350,7 @@ summary{
 
             <div class="setting" id="qualityBox">
 
-                <label>MP3 Quality</label>
+                <label>🎚️ MP3 Quality</label>
 
                 <select id="quality">
                     <option value="128k">128 kbps — Smaller</option>
@@ -478,7 +361,7 @@ summary{
             </div>
 
             <button class="convert" id="convert">
-                Convert to Audio
+                🎧 Convert to Audio
             </button>
 
         </div>
@@ -503,13 +386,13 @@ summary{
         <div class="result" id="result">
 
             <div class="result-title">
-                Conversion completed successfully
+                ✅ Conversion completed successfully
             </div>
 
             <audio id="audio" controls></audio>
 
             <button class="download" id="download">
-                Download Audio
+                ⬇️ Download Audio
             </button>
 
         </div>
@@ -517,18 +400,18 @@ summary{
         <div class="error" id="error">
 
             <div class="error-title">
-                Conversion failed
+                ⚠️ Conversion failed
             </div>
 
             <div class="error-reason" id="errorReason"></div>
 
             <details>
-                <summary>Show technical error</summary>
+                <summary>🔍 Show technical error</summary>
                 <div class="error-log" id="errorLog"></div>
             </details>
 
             <button class="retry" id="retry">
-                Try Again
+                🔁 Try Again
             </button>
 
         </div>
@@ -536,117 +419,10 @@ summary{
     </div>
 
     <div class="footer">
-        Your video is processed locally in your browser.
+        🔒 Your video is processed locally in your browser — nothing is uploaded.
     </div>
 
 </div>
-
-<script>
-/* =========================
-   Diagnostic Panel Logic
-   (runs immediately, independent of FFmpeg)
-========================= */
-
-function runDiagnostics(){
-
-    const httpsEl = document.getElementById("diagHttps");
-    const coiEl = document.getElementById("diagCoi");
-    const sabEl = document.getElementById("diagSab");
-    const wasmEl = document.getElementById("diagWasm");
-    const summaryEl = document.getElementById("diagSummary");
-
-    function setBadge(el, ok, okText, failText){
-        el.textContent = ok ? okText : failText;
-        el.className = "diag-badge " + (ok ? "diag-ok" : "diag-fail");
-    }
-
-    const isHttps =
-        location.protocol === "https:" ||
-        location.hostname === "localhost";
-
-    setBadge(httpsEl, isHttps, "OK", "Not Secure");
-
-    const isCoi =
-        window.crossOriginIsolated === true;
-
-    setBadge(coiEl, isCoi, "Active", "Not Active");
-
-    const hasSab =
-        typeof window.SharedArrayBuffer === "function";
-
-    setBadge(sabEl, hasSab, "Available", "Missing");
-
-    const hasWasm =
-        typeof window.WebAssembly === "object";
-
-    setBadge(wasmEl, hasWasm, "Supported", "Unsupported");
-
-    const allGood =
-        isHttps && isCoi && hasSab && hasWasm;
-
-    summaryEl.classList.add("show");
-
-    if(allGood){
-
-        summaryEl.classList.remove("bad");
-        summaryEl.classList.add("good");
-
-        summaryEl.textContent =
-            "✅ সব ঠিক আছে — vercel.json এর header গুলো সঠিকভাবে কাজ করছে। "
-            + "কনভার্টার চালু হওয়ার জন্য প্রস্তুত।";
-
-    } else {
-
-        summaryEl.classList.remove("good");
-        summaryEl.classList.add("bad");
-
-        let reasons = [];
-
-        if(!isHttps){
-            reasons.push(
-                "পেজটি HTTPS দিয়ে লোড হয়নি।"
-            );
-        }
-
-        if(!isCoi){
-            reasons.push(
-                "Cross-Origin Isolation চালু নেই — অর্থাৎ vercel.json এর "
-                + "Cross-Origin-Opener-Policy / Cross-Origin-Embedder-Policy "
-                + "header গুলো এখনো লাগু হয়নি বা ঠিকভাবে অ্যাড হয়নি।"
-            );
-        }
-
-        if(isCoi && !hasSab){
-            reasons.push(
-                "SharedArrayBuffer পাওয়া যাচ্ছে না — ব্রাউজার এটি সাপোর্ট করছে না।"
-            );
-        }
-
-        if(!hasWasm){
-            reasons.push(
-                "এই ব্রাউজার WebAssembly সাপোর্ট করে না।"
-            );
-        }
-
-        summaryEl.textContent =
-            "⚠️ সমস্যা পাওয়া গেছে:\n• "
-            + reasons.join("\n• ")
-            + "\n\nvercel.json ফাইলটি রিপোর একদম root এ আছে কিনা এবং "
-            + "নতুন deploy সম্পন্ন হয়েছে কিনা যাচাই করুন, তারপর হার্ড "
-            + "রিফ্রেশ (Ctrl+Shift+R) দিয়ে আবার চেক করুন।";
-    }
-
-}
-
-document.addEventListener(
-    "DOMContentLoaded",
-    runDiagnostics
-);
-
-document.getElementById(
-    "diagRecheck"
-) ?.addEventListener("click", runDiagnostics);
-</script>
 
 <script type="module">
 
@@ -918,7 +694,7 @@ async function fetchWithProgress(url, mimeType, onProgress, stallTimeoutMs){
                 + Math.round(stallTimeoutMs / 1000)
                 + "s while fetching "
                 + url
-                + ". নেটওয়ার্ক খুব ধীর, অথবা এই সোর্স আপনার নেটওয়ার্কে ব্লকড।"
+                + ". The network may be too slow, or this source is blocked on your network."
             );
 
         }
@@ -1045,8 +821,9 @@ async function loadFileWithProgress(label, url, mimeType){
             percentage.textContent = pct + "%";
 
             progressText.textContent =
-                label
-                + " ডাউনলোড হচ্ছে... "
+                "⬇️ Downloading "
+                + label
+                + "... "
                 + (total
                     ? formatMB(received) + " / " + formatMB(total)
                     : formatMB(received));
@@ -1220,8 +997,9 @@ async function initializeFFmpeg(){
         try{
 
             status.textContent =
-                new URL(src.core).hostname
-                + " থেকে লোড হচ্ছে...";
+                "🔧 Loading engine from "
+                + new URL(src.core).hostname
+                + "...";
 
             const coreURL =
                 await loadFileWithProgress(
@@ -1241,7 +1019,7 @@ async function initializeFFmpeg(){
                 await buildPatchedWorkerURL(src.worker);
 
             status.textContent =
-                "ইঞ্জিন চালু হচ্ছে...";
+                "⚙️ Starting engine...";
 
             progressText.textContent =
                 "Starting engine...";
