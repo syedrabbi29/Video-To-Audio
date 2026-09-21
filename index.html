@@ -2,10 +2,36 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>Video to Audio Converter</title>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
 <style>
+:root{
+    --cream:#FFF7F5;
+    --card:#FFFFFF;
+    --card-border:#FBE1EC;
+    --plum:#4B2E44;
+    --plum-soft:#8C7089;
+    --rose:#FF8FAE;
+    --lavender:#B98EE0;
+    --mint:#37B378;
+    --mint-bg:#F0FBF5;
+    --mint-border:#CDEEDC;
+    --coral:#E85D72;
+    --coral-bg:#FFF1F3;
+    --coral-border:#FAD2DA;
+    --field-bg:#FFFAFB;
+    --field-border:#F3D9E6;
+    --track:#FCE4EE;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    box-sizing:border-box;
+}
+
 *{
     box-sizing:border-box;
     margin:0;
@@ -13,84 +39,104 @@
 }
 
 body{
-    min-height:100vh;
-    background:#080a0f;
-    color:#fff;
-    font-family:Arial,Helvetica,sans-serif;
-    padding:18px;
+    min-height:100%;
+    background:var(--cream);
+    background-image:
+        radial-gradient(circle at 8% 0%, #FFE3EE 0%, transparent 45%),
+        radial-gradient(circle at 100% 15%, #F1E3FB 0%, transparent 40%);
+    color:var(--plum);
+    font-family:'Nunito',Arial,Helvetica,sans-serif;
+    padding:20px 16px 32px;
 }
+
+html{ height:100%; }
 
 .app{
     width:100%;
-    max-width:540px;
+    max-width:480px;
     margin:auto;
 }
 
 .header{
     text-align:center;
-    padding:20px 5px 22px;
+    padding:10px 5px 24px;
 }
 
 .logo{
-    width:68px;
-    height:68px;
+    width:64px;
+    height:64px;
     margin:auto;
-    border-radius:20px;
+    border-radius:50%;
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:30px;
-    background:linear-gradient(135deg,#7c3aed,#2563eb);
-    box-shadow:0 12px 40px rgba(91,55,220,.3);
+    background:linear-gradient(140deg,var(--rose),var(--lavender));
+    box-shadow:0 10px 26px rgba(226,120,178,.35);
 }
 
+.logo svg{ width:30px; height:30px; }
+
 h1{
-    margin-top:15px;
-    font-size:25px;
+    margin-top:16px;
+    font-family:'Quicksand',sans-serif;
+    font-weight:700;
+    font-size:24px;
+    color:var(--plum);
 }
 
 .subtitle{
-    color:#858c99;
+    color:var(--plum-soft);
     font-size:13px;
-    margin-top:7px;
+    margin-top:6px;
+    line-height:1.5;
 }
 
 .card{
-    background:#12151b;
-    border:1px solid #252a34;
-    border-radius:22px;
-    padding:18px;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:24px;
+    padding:20px;
+    box-shadow:0 18px 40px rgba(190,120,180,.10);
 }
 
 .drop{
     display:block;
-    border:1.5px dashed #3b414d;
-    border-radius:17px;
-    padding:32px 15px;
+    border:1.5px dashed #F0BFD8;
+    border-radius:18px;
+    padding:30px 15px;
     text-align:center;
     cursor:pointer;
-    transition:.2s;
+    transition:border-color .2s, background-color .2s;
+    background:var(--field-bg);
 }
 
 .drop:hover{
-    border-color:#7c3aed;
-    background:#17141f;
+    border-color:var(--rose);
+    background:#FFF1F6;
 }
 
 .upload-icon{
-    font-size:38px;
-    margin-bottom:10px;
+    width:46px;
+    height:46px;
+    margin:0 auto 12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
 }
 
+.upload-icon svg{ width:100%; height:100%; }
+
 .drop-title{
+    font-family:'Quicksand',sans-serif;
     font-size:16px;
-    font-weight:bold;
+    font-weight:600;
+    color:var(--plum);
 }
 
 .drop-sub{
-    margin-top:7px;
+    margin-top:6px;
     font-size:12px;
-    color:#747c8a;
+    color:var(--plum-soft);
 }
 
 #fileInput{
@@ -99,29 +145,51 @@ h1{
 
 .file-card{
     display:none;
-    margin-top:15px;
-    padding:13px;
-    border-radius:14px;
-    background:#191d25;
+    margin-top:14px;
+    padding:13px 14px;
+    border-radius:16px;
+    background:var(--field-bg);
+    border:1px solid var(--field-border);
+    display:none;
+    align-items:center;
+    gap:12px;
 }
 
+.file-card.show{ display:flex; }
+
+.file-card-icon{
+    width:34px;
+    height:34px;
+    flex:0 0 auto;
+    border-radius:11px;
+    background:linear-gradient(140deg,var(--rose),var(--lavender));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.file-card-icon svg{ width:17px; height:17px; }
+
+.file-text{ min-width:0; }
+
 .file-name{
-    font-size:14px;
-    font-weight:bold;
+    font-size:13.5px;
+    font-weight:700;
     word-break:break-all;
+    color:var(--plum);
 }
 
 .file-meta{
-    color:#737b89;
-    font-size:12px;
-    margin-top:6px;
+    color:var(--plum-soft);
+    font-size:11.5px;
+    margin-top:3px;
 }
 
 video{
     width:100%;
-    max-height:290px;
-    margin-top:15px;
-    border-radius:15px;
+    max-height:260px;
+    margin-top:14px;
+    border-radius:16px;
     background:#000;
     display:none;
 }
@@ -136,38 +204,70 @@ video{
 }
 
 .setting label{
-    display:block;
-    color:#9299a6;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    color:var(--plum-soft);
     font-size:12px;
+    font-weight:700;
     margin-bottom:7px;
 }
 
+.setting label svg{ width:14px; height:14px; flex:0 0 auto; }
+
 select{
     width:100%;
-    padding:13px;
-    color:white;
-    background:#1a1e26;
-    border:1px solid #303641;
-    border-radius:12px;
+    padding:13px 14px;
+    color:var(--plum);
+    font-family:'Nunito',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    background:var(--field-bg);
+    border:1px solid var(--field-border);
+    border-radius:13px;
     outline:none;
+    appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B98EE0' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat:no-repeat;
+    background-position:right 14px center;
+    background-size:16px;
+}
+
+select:focus{
+    border-color:var(--rose);
 }
 
 .convert{
     width:100%;
     border:0;
-    border-radius:14px;
+    border-radius:15px;
     padding:15px;
-    margin-top:4px;
+    margin-top:5px;
     color:#fff;
+    font-family:'Quicksand',sans-serif;
     font-size:15px;
-    font-weight:bold;
-    background:linear-gradient(135deg,#7c3aed,#2563eb);
+    font-weight:700;
+    letter-spacing:.2px;
+    background:linear-gradient(135deg,var(--rose),var(--lavender));
     cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:9px;
+    transition:transform .15s, box-shadow .15s;
+    box-shadow:0 10px 24px rgba(226,120,178,.30);
+}
+
+.convert svg{ width:18px; height:18px; }
+
+.convert:active:not(:disabled){
+    transform:scale(.98);
 }
 
 .convert:disabled{
-    opacity:.55;
+    opacity:.5;
     cursor:not-allowed;
+    box-shadow:none;
 }
 
 .progress-box{
@@ -179,14 +279,15 @@ select{
     display:flex;
     justify-content:space-between;
     font-size:12px;
-    color:#949ba8;
+    font-weight:700;
+    color:var(--plum-soft);
     margin-bottom:8px;
 }
 
 .progress{
     width:100%;
-    height:8px;
-    background:#242832;
+    height:9px;
+    background:var(--track);
     border-radius:20px;
     overflow:hidden;
 }
@@ -194,32 +295,45 @@ select{
 .progress-bar{
     width:0%;
     height:100%;
-    background:linear-gradient(90deg,#7c3aed,#2563eb);
+    border-radius:20px;
+    background:linear-gradient(90deg,var(--rose),var(--lavender));
     transition:width .2s;
 }
 
 .status{
     text-align:center;
-    color:#7f8795;
+    color:var(--plum-soft);
     font-size:12px;
-    margin-top:9px;
+    margin-top:10px;
 }
 
 .result{
     display:none;
     margin-top:18px;
-    padding:15px;
-    background:#171c21;
-    border:1px solid #26312a;
-    border-radius:15px;
+    padding:16px;
+    background:var(--mint-bg);
+    border:1px solid var(--mint-border);
+    border-radius:17px;
+    animation:bloom .38s ease;
+}
+
+@keyframes bloom{
+    from{ opacity:0; transform:scale(.96); }
+    to{ opacity:1; transform:scale(1); }
 }
 
 .result-title{
-    color:#62d48a;
-    font-size:14px;
-    font-weight:bold;
-    margin-bottom:12px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--mint);
+    font-family:'Quicksand',sans-serif;
+    font-size:14.5px;
+    font-weight:700;
+    margin-bottom:13px;
 }
+
+.result-title svg{ width:19px; height:19px; flex:0 0 auto; }
 
 audio{
     width:100%;
@@ -228,60 +342,86 @@ audio{
 .download{
     width:100%;
     border:0;
-    border-radius:13px;
+    border-radius:14px;
     padding:14px;
-    margin-top:12px;
-    background:#16a34a;
+    margin-top:13px;
+    background:var(--mint);
     color:white;
-    font-weight:bold;
+    font-family:'Quicksand',sans-serif;
+    font-weight:700;
+    font-size:14.5px;
     cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    transition:transform .15s;
 }
+
+.download svg{ width:17px; height:17px; }
+
+.download:active{ transform:scale(.98); }
 
 .error{
     display:none;
     margin-top:18px;
-    padding:15px;
-    background:#241316;
-    border:1px solid #63252e;
-    border-radius:15px;
+    padding:16px;
+    background:var(--coral-bg);
+    border:1px solid var(--coral-border);
+    border-radius:17px;
 }
 
 .error-title{
-    color:#ff7f8b;
-    font-weight:bold;
-    font-size:14px;
-    margin-bottom:9px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--coral);
+    font-family:'Quicksand',sans-serif;
+    font-weight:700;
+    font-size:14.5px;
+    margin-bottom:10px;
 }
 
+.error-title svg{ width:18px; height:18px; flex:0 0 auto; }
+
 .error-reason{
-    color:#ffb5bc;
+    color:#7A3B45;
     font-size:13px;
-    line-height:1.5;
+    line-height:1.55;
     margin-bottom:12px;
 }
 
 details{
-    margin-top:8px;
+    margin-top:6px;
 }
 
 summary{
-    color:#aab1bd;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    color:#B4707D;
     font-size:12px;
+    font-weight:700;
     cursor:pointer;
+    list-style:none;
 }
+
+summary::-webkit-details-marker{ display:none; }
+
+summary svg{ width:13px; height:13px; }
 
 .error-log{
     margin-top:9px;
-    padding:11px;
-    border-radius:10px;
-    background:#0d0f13;
-    color:#9da5b3;
+    padding:12px;
+    border-radius:11px;
+    background:#3A2530;
+    color:#E6C3CC;
     font-family:monospace;
     font-size:10px;
-    line-height:1.5;
+    line-height:1.55;
     white-space:pre-wrap;
     word-break:break-word;
-    max-height:220px;
+    max-height:200px;
     overflow:auto;
 }
 
@@ -289,18 +429,36 @@ summary{
     width:100%;
     margin-top:12px;
     padding:12px;
-    border:1px solid #3a414d;
-    border-radius:12px;
-    background:#1a1e26;
-    color:#fff;
+    border:1px solid var(--coral-border);
+    border-radius:13px;
+    background:#fff;
+    color:var(--coral);
+    font-weight:700;
+    font-size:13.5px;
     cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
 }
 
+.retry svg{ width:15px; height:15px; }
+
 .footer{
-    text-align:center;
-    color:#515967;
-    font-size:10px;
-    margin-top:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    color:#B49AAE;
+    font-size:10.5px;
+    margin-top:18px;
+}
+
+.footer svg{ width:12px; height:12px; flex:0 0 auto; }
+
+@media (prefers-reduced-motion: reduce){
+    .result{ animation:none; }
+    *{ transition:none !important; }
 }
 </style>
 </head>
@@ -310,18 +468,35 @@ summary{
 <div class="app">
 
     <div class="header">
-        <div class="logo">♫</div>
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18V5l12-2v13" />
+                <circle cx="6" cy="18" r="3" />
+                <circle cx="18" cy="16" r="3" />
+            </svg>
+        </div>
         <h1>Video to Audio</h1>
         <div class="subtitle">
-            Convert video files into audio directly in your browser
+            Turn your video clips into audio, right here in your browser
         </div>
     </div>
 
     <div class="card">
 
         <label class="drop" for="fileInput">
-            <div class="upload-icon">🎬</div>
-            <div class="drop-title">Choose Video</div>
+            <div class="upload-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="url(#gradIcon)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                    <defs>
+                        <linearGradient id="gradIcon" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#FF8FAE"/>
+                            <stop offset="1" stop-color="#B98EE0"/>
+                        </linearGradient>
+                    </defs>
+                    <rect x="2.5" y="5" width="14" height="14" rx="3"/>
+                    <path d="M16.5 9.5 21 7v10l-4.5-2.5"/>
+                </svg>
+            </div>
+            <div class="drop-title">Choose a video</div>
             <div class="drop-sub">
                 MP4, WebM, MOV, MKV and other supported formats
             </div>
@@ -330,8 +505,16 @@ summary{
         <input id="fileInput" type="file" accept="video/*">
 
         <div class="file-card" id="fileCard">
-            <div class="file-name" id="fileName"></div>
-            <div class="file-meta" id="fileMeta"></div>
+            <div class="file-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="6" width="13" height="12" rx="2.5"/>
+                    <path d="M16 10.5 21 8v8l-5-2.5"/>
+                </svg>
+            </div>
+            <div class="file-text">
+                <div class="file-name" id="fileName"></div>
+                <div class="file-meta" id="fileMeta"></div>
+            </div>
         </div>
 
         <video id="video" controls></video>
@@ -339,7 +522,14 @@ summary{
         <div class="settings" id="settings">
 
             <div class="setting">
-                <label>🎵 Audio Format</label>
+                <label>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#B98EE0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 18V5l12-2v13"/>
+                        <circle cx="6" cy="18" r="3"/>
+                        <circle cx="18" cy="16" r="3"/>
+                    </svg>
+                    Audio format
+                </label>
 
                 <select id="format">
                     <option value="mp3">MP3</option>
@@ -350,18 +540,29 @@ summary{
 
             <div class="setting" id="qualityBox">
 
-                <label>🎚️ MP3 Quality</label>
+                <label>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#B98EE0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                    MP3 quality
+                </label>
 
                 <select id="quality">
-                    <option value="128k">128 kbps — Smaller</option>
+                    <option value="128k">128 kbps — Smaller file</option>
                     <option value="192k" selected>192 kbps — Recommended</option>
-                    <option value="320k">320 kbps — High Quality</option>
+                    <option value="320k">320 kbps — High quality</option>
                 </select>
 
             </div>
 
             <button class="convert" id="convert">
-                🎧 Convert to Audio
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 18V5l12-2v13"/>
+                    <circle cx="6" cy="18" r="3"/>
+                    <circle cx="18" cy="16" r="3"/>
+                </svg>
+                Convert to audio
             </button>
 
         </div>
@@ -386,13 +587,22 @@ summary{
         <div class="result" id="result">
 
             <div class="result-title">
-                ✅ Conversion completed successfully
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="9.5"/>
+                    <path d="M8.5 12.5 11 15l5-6"/>
+                </svg>
+                Your audio is ready
             </div>
 
             <audio id="audio" controls></audio>
 
             <button class="download" id="download">
-                ⬇️ Download Audio
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 3v13"/>
+                    <path d="M7 11l5 5 5-5"/>
+                    <path d="M4 20h16"/>
+                </svg>
+                Download audio
             </button>
 
         </div>
@@ -400,18 +610,33 @@ summary{
         <div class="error" id="error">
 
             <div class="error-title">
-                ⚠️ Conversion failed
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2 1 21h22L12 2z"/>
+                    <path d="M12 9v5"/>
+                    <path d="M12 17.5v.01"/>
+                </svg>
+                Conversion failed
             </div>
 
             <div class="error-reason" id="errorReason"></div>
 
             <details>
-                <summary>🔍 Show technical error</summary>
+                <summary>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="7"/>
+                        <path d="M21 21l-4.3-4.3"/>
+                    </svg>
+                    Show technical error
+                </summary>
                 <div class="error-log" id="errorLog"></div>
             </details>
 
             <button class="retry" id="retry">
-                🔁 Try Again
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 12a9 9 0 1 1 2.64 6.36"/>
+                    <path d="M3 21v-6h6"/>
+                </svg>
+                Try again
             </button>
 
         </div>
@@ -419,7 +644,11 @@ summary{
     </div>
 
     <div class="footer">
-        🔒 Your video is processed locally in your browser — nothing is uploaded.
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="10" width="16" height="11" rx="2"/>
+            <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+        </svg>
+        Your video is processed locally in your browser — nothing is uploaded
     </div>
 
 </div>
@@ -539,7 +768,7 @@ function selectFile(file){
         + " • "
         + (file.type || "Unknown video type");
 
-    fileCard.style.display = "block";
+    fileCard.classList.add("show");
 
     video.src =
         URL.createObjectURL(file);
@@ -821,7 +1050,7 @@ async function loadFileWithProgress(label, url, mimeType){
             percentage.textContent = pct + "%";
 
             progressText.textContent =
-                "⬇️ Downloading "
+                "Downloading "
                 + label
                 + "... "
                 + (total
@@ -997,7 +1226,7 @@ async function initializeFFmpeg(){
         try{
 
             status.textContent =
-                "🔧 Loading engine from "
+                "Loading engine from "
                 + new URL(src.core).hostname
                 + "...";
 
@@ -1019,7 +1248,7 @@ async function initializeFFmpeg(){
                 await buildPatchedWorkerURL(src.worker);
 
             status.textContent =
-                "⚙️ Starting engine...";
+                "Starting engine...";
 
             progressText.textContent =
                 "Starting engine...";
@@ -1623,4 +1852,4 @@ function formatBytes(bytes){
 </script>
 
 </body>
-</html>
+    </html>
