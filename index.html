@@ -797,10 +797,21 @@ format.addEventListener("change", () => {
    FFmpeg Loading
 ========================= */
 
-const FFMPEG_CDN_SOURCES = [
+const FFMPEG_SOURCES = [
 
-    "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm",
-    "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm"
+    {
+        core:
+            "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm",
+        worker:
+            "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/worker.js"
+    },
+
+    {
+        core:
+            "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm",
+        worker:
+            "https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/worker.js"
+    }
 
 ];
 
@@ -849,27 +860,33 @@ async function initializeFFmpeg(){
     let lastError = null;
 
 
-    for(const baseURL of FFMPEG_CDN_SOURCES){
+    for(const src of FFMPEG_SOURCES){
 
         try{
 
             status.textContent =
                 "Loading conversion engine ("
-                + new URL(baseURL).hostname
+                + new URL(src.core).hostname
                 + ")...";
 
             await ffmpeg.load({
 
                 coreURL:
                     await toBlobURL(
-                        `${baseURL}/ffmpeg-core.js`,
+                        `${src.core}/ffmpeg-core.js`,
                         "text/javascript"
                     ),
 
                 wasmURL:
                     await toBlobURL(
-                        `${baseURL}/ffmpeg-core.wasm`,
+                        `${src.core}/ffmpeg-core.wasm`,
                         "application/wasm"
+                    ),
+
+                classWorkerURL:
+                    await toBlobURL(
+                        src.worker,
+                        "text/javascript"
                     )
 
             });
@@ -884,7 +901,7 @@ async function initializeFFmpeg(){
 
             console.error(
                 "[FFmpeg] Failed to load from",
-                baseURL,
+                src.core,
                 err
             );
 
@@ -902,7 +919,7 @@ async function initializeFFmpeg(){
     throw new Error(
         "FFmpeg engine could not be loaded from any available source "
         + "(tried: "
-        + FFMPEG_CDN_SOURCES.map(u => new URL(u).hostname).join(", ")
+        + FFMPEG_SOURCES.map(s => new URL(s.core).hostname).join(", ")
         + "). Underlying error: "
         + detail
     );
