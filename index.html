@@ -797,13 +797,18 @@ format.addEventListener("change", () => {
    FFmpeg Loading
 ========================= */
 
+const FFMPEG_CDN_SOURCES = [
+
+    "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm",
+    "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm"
+
+];
+
+
 async function initializeFFmpeg(){
 
     if(ffmpegReady)
         return;
-
-    status.textContent =
-        "Loading conversion engine...";
 
     ffmpeg = new FFmpeg();
 
@@ -841,38 +846,66 @@ async function initializeFFmpeg(){
     });
 
 
-    const baseURL =
-        "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm";
+    let lastError = null;
 
 
-    try{
+    for(const baseURL of FFMPEG_CDN_SOURCES){
 
-        await ffmpeg.load({
+        try{
 
-            coreURL:
-                await toBlobURL(
-                    `${baseURL}/ffmpeg-core.js`,
-                    "text/javascript"
-                ),
+            status.textContent =
+                "Loading conversion engine ("
+                + new URL(baseURL).hostname
+                + ")...";
 
-            wasmURL:
-                await toBlobURL(
-                    `${baseURL}/ffmpeg-core.wasm`,
-                    "application/wasm"
-                )
+            await ffmpeg.load({
 
-        });
+                coreURL:
+                    await toBlobURL(
+                        `${baseURL}/ffmpeg-core.js`,
+                        "text/javascript"
+                    ),
 
-        ffmpegReady = true;
+                wasmURL:
+                    await toBlobURL(
+                        `${baseURL}/ffmpeg-core.wasm`,
+                        "application/wasm"
+                    )
 
-    }catch(err){
+            });
 
-        throw new Error(
-            "FFmpeg engine could not be loaded. " +
-            "This is usually caused by a network/CDN problem or browser restriction."
-        );
+            ffmpegReady = true;
+
+            return;
+
+        }catch(err){
+
+            lastError = err;
+
+            console.error(
+                "[FFmpeg] Failed to load from",
+                baseURL,
+                err
+            );
+
+        }
 
     }
+
+
+    const detail =
+        lastError && lastError.message
+        ? lastError.message
+        : String(lastError);
+
+
+    throw new Error(
+        "FFmpeg engine could not be loaded from any available source "
+        + "(tried: "
+        + FFMPEG_CDN_SOURCES.map(u => new URL(u).hostname).join(", ")
+        + "). Underlying error: "
+        + detail
+    );
 
 }
 
