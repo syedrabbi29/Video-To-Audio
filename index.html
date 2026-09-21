@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Video to Audio Converter</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    min-height:100vh;
+    background:#080a0f;
+    color:#fff;
+    font-family:Arial,Helvetica,sans-serif;
+    padding:18px;
+}
+
+.app{
+    width:100%;
+    max-width:540px;
+    margin:auto;
+}
+
+.header{
+    text-align:center;
+    padding:20px 5px 22px;
+}
+
+.logo{
+    width:68px;
+    height:68px;
+    margin:auto;
+    border-radius:20px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:30px;
+    background:linear-gradient(135deg,#7c3aed,#2563eb);
+    box-shadow:0 12px 40px rgba(91,55,220,.3);
+}
+
+h1{
+    margin-top:15px;
+    font-size:25px;
+}
+
+.subtitle{
+    color:#858c99;
+    font-size:13px;
+    margin-top:7px;
+}
+
+.card{
+    background:#12151b;
+    border:1px solid #252a34;
+    border-radius:22px;
+    padding:18px;
+}
+
+.drop{
+    display:block;
+    border:1.5px dashed #3b414d;
+    border-radius:17px;
+    padding:32px 15px;
+    text-align:center;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.drop:hover{
+    border-color:#7c3aed;
+    background:#17141f;
+}
+
+.upload-icon{
+    font-size:38px;
+    margin-bottom:10px;
+}
+
+.drop-title{
+    font-size:16px;
+    font-weight:bold;
+}
+
+.drop-sub{
+    margin-top:7px;
+    font-size:12px;
+    color:#747c8a;
+}
+
+#fileInput{
+    display:none;
+}
+
+.file-card{
+    display:none;
+    margin-top:15px;
+    padding:13px;
+    border-radius:14px;
+    background:#191d25;
+}
+
+.file-name{
+    font-size:14px;
+    font-weight:bold;
+    word-break:break-all;
+}
+
+.file-meta{
+    color:#737b89;
+    font-size:12px;
+    margin-top:6px;
+}
+
+video{
+    width:100%;
+    max-height:290px;
+    margin-top:15px;
+    border-radius:15px;
+    background:#000;
+    display:none;
+}
+
+.settings{
+    display:none;
+    margin-top:18px;
+}
+
+.setting{
+    margin-bottom:13px;
+}
+
+.setting label{
+    display:block;
+    color:#9299a6;
+    font-size:12px;
+    margin-bottom:7px;
+}
+
+select{
+    width:100%;
+    padding:13px;
+    color:white;
+    background:#1a1e26;
+    border:1px solid #303641;
+    border-radius:12px;
+    outline:none;
+}
+
+.convert{
+    width:100%;
+    border:0;
+    border-radius:14px;
+    padding:15px;
+    margin-top:4px;
+    color:#fff;
+    font-size:15px;
+    font-weight:bold;
+    background:linear-gradient(135deg,#7c3aed,#2563eb);
+    cursor:pointer;
+}
+
+.convert:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+}
+
+.progress-box{
+    display:none;
+    margin-top:20px;
+}
+
+.progress-head{
+    display:flex;
+    justify-content:space-between;
+    font-size:12px;
+    color:#949ba8;
+    margin-bottom:8px;
+}
+
+.progress{
+    width:100%;
+    height:8px;
+    background:#242832;
+    border-radius:20px;
+    overflow:hidden;
+}
+
+.progress-bar{
+    width:0%;
+    height:100%;
+    background:linear-gradient(90deg,#7c3aed,#2563eb);
+    transition:width .2s;
+}
+
+.status{
+    text-align:center;
+    color:#7f8795;
+    font-size:12px;
+    margin-top:9px;
+}
+
+.result{
+    display:none;
+    margin-top:18px;
+    padding:15px;
+    background:#171c21;
+    border:1px solid #26312a;
+    border-radius:15px;
+}
+
+.result-title{
+    color:#62d48a;
+    font-size:14px;
+    font-weight:bold;
+    margin-bottom:12px;
+}
+
+audio{
+    width:100%;
+}
+
+.download{
+    width:100%;
+    border:0;
+    border-radius:13px;
+    padding:14px;
+    margin-top:12px;
+    background:#16a34a;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.error{
+    display:none;
+    margin-top:18px;
+    padding:15px;
+    background:#241316;
+    border:1px solid #63252e;
+    border-radius:15px;
+}
+
+.error-title{
+    color:#ff7f8b;
+    font-weight:bold;
+    font-size:14px;
+    margin-bottom:9px;
+}
+
+.error-reason{
+    color:#ffb5bc;
+    font-size:13px;
+    line-height:1.5;
+    margin-bottom:12px;
+}
+
+details{
+    margin-top:8px;
+}
+
+summary{
+    color:#aab1bd;
+    font-size:12px;
+    cursor:pointer;
+}
+
+.error-log{
+    margin-top:9px;
+    padding:11px;
+    border-radius:10px;
+    background:#0d0f13;
+    color:#9da5b3;
+    font-family:monospace;
+    font-size:10px;
+    line-height:1.5;
+    white-space:pre-wrap;
+    word-break:break-word;
+    max-height:220px;
+    overflow:auto;
+}
+
+.retry{
+    width:100%;
+    margin-top:12px;
+    padding:12px;
+    border:1px solid #3a414d;
+    border-radius:12px;
+    background:#1a1e26;
+    color:#fff;
+    cursor:pointer;
+}
+
+.footer{
+    text-align:center;
+    color:#515967;
+    font-size:10px;
+    margin-top:16px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <div class="header">
+        <div class="logo">♫</div>
+        <h1>Video to Audio</h1>
+        <div class="subtitle">
+            Convert video files into audio directly in your browser
+        </div>
+    </div>
+
+    <div class="card">
+
+        <label class="drop" for="fileInput">
+            <div class="upload-icon">🎬</div>
+            <div class="drop-title">Choose Video</div>
+            <div class="drop-sub">
+                MP4, WebM, MOV, MKV and other supported formats
+            </div>
+        </label>
+
+        <input id="fileInput" type="file" accept="video/*">
+
+        <div class="file-card" id="fileCard">
+            <div class="file-name" id="fileName"></div>
+            <div class="file-meta" id="fileMeta"></div>
+        </div>
+
+        <video id="video" controls></video>
+
+        <div class="settings" id="settings">
+
+            <div class="setting">
+                <label>Audio Format</label>
+
+                <select id="format">
+                    <option value="mp3">MP3</option>
+                    <option value="aac">AAC</option>
+                    <option value="wav">WAV</option>
+                </select>
+            </div>
+
+            <div class="setting" id="qualityBox">
+
+                <label>MP3 Quality</label>
+
+                <select id="quality">
+                    <option value="128k">128 kbps — Smaller</option>
+                    <option value="192k" selected>192 kbps — Recommended</option>
+                    <option value="320k">320 kbps — High Quality</option>
+                </select>
+
+            </div>
+
+            <button class="convert" id="convert">
+                Convert to Audio
+            </button>
+
+        </div>
+
+        <div class="progress-box" id="progressBox">
+
+            <div class="progress-head">
+                <span id="progressText">Preparing...</span>
+                <span id="percentage">0%</span>
+            </div>
+
+            <div class="progress">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <div class="status" id="status">
+                Starting...
+            </div>
+
+        </div>
+
+        <div class="result" id="result">
+
+            <div class="result-title">
+                Conversion completed successfully
+            </div>
+
+            <audio id="audio" controls></audio>
+
+            <button class="download" id="download">
+                Download Audio
+            </button>
+
+        </div>
+
+        <div class="error" id="error">
+
+            <div class="error-title">
+                Conversion failed
+            </div>
+
+            <div class="error-reason" id="errorReason"></div>
+
+            <details>
+                <summary>Show technical error</summary>
+                <div class="error-log" id="errorLog"></div>
+            </details>
+
+            <button class="retry" id="retry">
+                Try Again
+            </button>
+
+        </div>
+
+    </div>
+
+    <div class="footer">
+        Your video is processed locally in your browser.
+    </div>
+
+</div>
+
+
+<script type="module">
+
+import { FFmpeg } from
+"https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/+esm";
+
+import {
+    fetchFile,
+    toBlobURL
+} from
+"https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/+esm";
+
+
+const fileInput =
+    document.getElementById("fileInput");
+
+const fileCard =
+    document.getElementById("fileCard");
+
+const fileName =
+    document.getElementById("fileName");
+
+const fileMeta =
+    document.getElementById("fileMeta");
+
+const video =
+    document.getElementById("video");
+
+const settings =
+    document.getElementById("settings");
+
+const format =
+    document.getElementById("format");
+
+const qualityBox =
+    document.getElementById("qualityBox");
+
+const quality =
+    document.getElementById("quality");
+
+const convert =
+    document.getElementById("convert");
+
+const progressBox =
+    document.getElementById("progressBox");
+
+const progressBar =
+    document.getElementById("progressBar");
+
+const progressText =
+    document.getElementById("progressText");
+
+const percentage =
+    document.getElementById("percentage");
+
+const status =
+    document.getElementById("status");
+
+const result =
+    document.getElementById("result");
+
+const audio =
+    document.getElementById("audio");
+
+const download =
+    document.getElementById("download");
+
+const error =
+    document.getElementById("error");
+
+const errorReason =
+    document.getElementById("errorReason");
+
+const errorLog =
+    document.getElementById("errorLog");
+
+const retry =
+    document.getElementById("retry");
+
+
+let selectedFile = null;
+let outputURL = null;
+let ffmpeg = null;
+let ffmpegReady = false;
+let currentInputName = null;
+let currentOutputName = null;
+
+
+/* =========================
+   File Selection
+========================= */
+
+fileInput.addEventListener("change", () => {
+
+    const file = fileInput.files[0];
+
+    if(!file) return;
+
+    selectFile(file);
+
+});
+
+
+function selectFile(file){
+
+    hideError();
+
+    selectedFile = file;
+
+    fileName.textContent = file.name;
+
+    fileMeta.textContent =
+        formatBytes(file.size)
+        + " • "
+        + (file.type || "Unknown video type");
+
+    fileCard.style.display = "block";
+
+    video.src =
+        URL.createObjectURL(file);
+
+    video.style.display = "block";
+
+    settings.style.display = "block";
+
+    result.style.display = "none";
+
+    audio.removeAttribute("src");
+
+}
+
+
+/* =========================
+   Format UI
+========================= */
+
+format.addEventListener("change", () => {
+
+    qualityBox.style.display =
+        format.value === "mp3"
+        ? "block"
+        : "none";
+
+});
+
+
+/* =========================
+   FFmpeg Loading
+========================= */
+
+async function initializeFFmpeg(){
+
+    if(ffmpegReady)
+        return;
+
+    status.textContent =
+        "Loading conversion engine...";
+
+    ffmpeg = new FFmpeg();
+
+
+    ffmpeg.on("progress", ({progress}) => {
+
+        if(!isFinite(progress))
+            return;
+
+        const value =
+            Math.max(
+                0,
+                Math.min(
+                    100,
+                    Math.round(progress * 100)
+                )
+            );
+
+        progressBar.style.width =
+            value + "%";
+
+        percentage.textContent =
+            value + "%";
+
+        progressText.textContent =
+            "Converting...";
+
+    });
+
+
+    ffmpeg.on("log", ({message}) => {
+
+        console.log("[FFmpeg]", message);
+
+    });
+
+
+    const baseURL =
+        "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm";
+
+
+    try{
+
+        await ffmpeg.load({
+
+            coreURL:
+                await toBlobURL(
+                    `${baseURL}/ffmpeg-core.js`,
+                    "text/javascript"
+                ),
+
+            wasmURL:
+                await toBlobURL(
+                    `${baseURL}/ffmpeg-core.wasm`,
+                    "application/wasm"
+                )
+
+        });
+
+        ffmpegReady = true;
+
+    }catch(err){
+
+        throw new Error(
+            "FFmpeg engine could not be loaded. " +
+            "This is usually caused by a network/CDN problem or browser restriction."
+        );
+
+    }
+
+}
+
+
+/* =========================
+   Conversion
+========================= */
+
+convert.addEventListener("click", async () => {
+
+    await startConversion();
+
+});
+
+
+retry.addEventListener("click", async () => {
+
+    await startConversion();
+
+});
+
+
+async function startConversion(){
+
+    if(!selectedFile){
+
+        showError(
+            "No video was selected.",
+            "Please choose a video file before starting conversion."
+        );
+
+        return;
+
+    }
+
+
+    resetProgress();
+
+    hideError();
+
+    result.style.display = "none";
+
+    convert.disabled = true;
+
+
+    try{
+
+        await initializeFFmpeg();
+
+        status.textContent =
+            "Preparing video...";
+
+
+        const extension =
+            getExtension(selectedFile.name);
+
+
+        currentInputName =
+            "input_" +
+            Date.now() +
+            extension;
+
+
+        currentOutputName =
+            "audio_" +
+            Date.now() +
+            "." +
+            format.value;
+
+
+        await ffmpeg.writeFile(
+            currentInputName,
+            await fetchFile(selectedFile)
+        );
+
+
+        status.textContent =
+            "Extracting audio...";
+
+
+        let command = [];
+
+
+        if(format.value === "mp3"){
+
+            command = [
+
+                "-i",
+                currentInputName,
+
+                "-vn",
+
+                "-map",
+                "0:a:0",
+
+                "-c:a",
+                "libmp3lame",
+
+                "-b:a",
+                quality.value,
+
+                "-ar",
+                "44100",
+
+                currentOutputName
+
+            ];
+
+        }
+
+
+        else if(format.value === "aac"){
+
+            command = [
+
+                "-i",
+                currentInputName,
+
+                "-vn",
+
+                "-map",
+                "0:a:0",
+
+                "-c:a",
+                "aac",
+
+                "-b:a",
+                "192k",
+
+                currentOutputName
+
+            ];
+
+        }
+
+
+        else if(format.value === "wav"){
+
+            command = [
+
+                "-i",
+                currentInputName,
+
+                "-vn",
+
+                "-map",
+                "0:a:0",
+
+                "-c:a",
+                "pcm_s16le",
+
+                "-ar",
+                "44100",
+
+                currentOutputName
+
+            ];
+
+        }
+
+
+        const exitCode =
+            await ffmpeg.exec(command);
+
+
+        if(exitCode !== 0){
+
+            throw new Error(
+                "FFmpeg exited with code " +
+                exitCode
+            );
+
+        }
+
+
+        status.textContent =
+            "Reading converted audio...";
+
+
+        const data =
+            await ffmpeg.readFile(
+                currentOutputName
+            );
+
+
+        if(!data || data.length === 0){
+
+            throw new Error(
+                "FFmpeg created an empty output file."
+            );
+
+        }
+
+
+        let mime =
+            "audio/mpeg";
+
+
+        if(format.value === "wav")
+            mime = "audio/wav";
+
+
+        if(format.value === "aac")
+            mime = "audio/aac";
+
+
+        const blob =
+            new Blob(
+                [data.buffer],
+                {type:mime}
+            );
+
+
+        if(blob.size === 0){
+
+            throw new Error(
+                "The converted audio is empty."
+            );
+
+        }
+
+
+        if(outputURL){
+
+            URL.revokeObjectURL(
+                outputURL
+            );
+
+        }
+
+
+        outputURL =
+            URL.createObjectURL(blob);
+
+
+        audio.src =
+            outputURL;
+
+
+        result.style.display =
+            "block";
+
+
+        progressBar.style.width =
+            "100%";
+
+
+        percentage.textContent =
+            "100%";
+
+
+        progressText.textContent =
+            "Completed";
+
+
+        status.textContent =
+            "Audio is ready to download.";
+
+
+        download.onclick = () => {
+
+            const a =
+                document.createElement("a");
+
+            a.href =
+                outputURL;
+
+            const original =
+                selectedFile.name
+                .replace(/\.[^/.]+$/, "");
+
+
+            a.download =
+                original +
+                "." +
+                format.value;
+
+
+            document.body.appendChild(a);
+
+            a.click();
+
+            a.remove();
+
+        };
+
+
+        await cleanupFFmpegFiles();
+
+
+    }catch(err){
+
+        console.error(err);
+
+        const message =
+            extractErrorMessage(err);
+
+
+        const reason =
+            detectReason(message);
+
+
+        showError(
+            reason,
+            message
+        );
+
+
+        progressText.textContent =
+            "Failed";
+
+        status.textContent =
+            "See the error details below.";
+
+    }
+
+
+    convert.disabled = false;
+
+}
+
+
+/* =========================
+   Error Reason Detection
+========================= */
+
+function detectReason(message){
+
+    const text =
+        String(message).toLowerCase();
+
+
+    if(
+        text.includes("does not contain any stream") ||
+        text.includes("stream map") ||
+        text.includes("matches no streams") ||
+        text.includes("0:a")
+    ){
+
+        return "This video does not appear to contain a usable audio track.";
+
+    }
+
+
+    if(
+        text.includes("invalid data") ||
+        text.includes("moov atom") ||
+        text.includes("invalid argument")
+    ){
+
+        return "The video file may be damaged, incomplete, or encoded in a format FFmpeg cannot read.";
+
+    }
+
+
+    if(
+        text.includes("unknown decoder") ||
+        text.includes("unsupported codec") ||
+        text.includes("decoder")
+    ){
+
+        return "The audio/video codec inside this file is not supported by the loaded FFmpeg build.";
+
+    }
+
+
+    if(
+        text.includes("memory") ||
+        text.includes("out of memory") ||
+        text.includes("allocation")
+    ){
+
+        return "The browser ran out of available memory. Try a smaller video or close other apps/tabs.";
+
+    }
+
+
+    if(
+        text.includes("network") ||
+        text.includes("fetch") ||
+        text.includes("load")
+    ){
+
+        return "The FFmpeg engine could not be loaded correctly. Check your internet connection and try again.";
+
+    }
+
+
+    if(
+        text.includes("permission") ||
+        text.includes("not allowed")
+    ){
+
+        return "The browser blocked access to the selected file or conversion operation.";
+
+    }
+
+
+    if(
+        text.includes("wasm")
+    ){
+
+        return "The browser could not properly run the FFmpeg WebAssembly engine.";
+
+    }
+
+
+    return "FFmpeg could not complete the conversion. Check the technical error below for the exact reason.";
+
+}
+
+
+/* =========================
+   Progress Reset
+========================= */
+
+function resetProgress(){
+
+    progressBox.style.display =
+        "block";
+
+    progressBar.style.width =
+        "0%";
+
+    percentage.textContent =
+        "0%";
+
+    progressText.textContent =
+        "Preparing...";
+
+    status.textContent =
+        "Starting conversion...";
+
+}
+
+
+/* =========================
+   Cleanup
+========================= */
+
+async function cleanupFFmpegFiles(){
+
+    try{
+
+        if(currentInputName){
+
+            await ffmpeg.deleteFile(
+                currentInputName
+            );
+
+        }
+
+    }catch(e){}
+
+
+    try{
+
+        if(currentOutputName){
+
+            await ffmpeg.deleteFile(
+                currentOutputName
+            );
+
+        }
+
+    }catch(e){}
+
+}
+
+
+/* =========================
+   Error UI
+========================= */
+
+function showError(reason, technical){
+
+    errorReason.textContent =
+        reason;
+
+    errorLog.textContent =
+        technical;
+
+    error.style.display =
+        "block";
+
+}
+
+
+function hideError(){
+
+    error.style.display =
+        "none";
+
+}
+
+
+/* =========================
+   Helpers
+========================= */
+
+function extractErrorMessage(err){
+
+    if(!err)
+        return "Unknown error.";
+
+    if(err.message)
+        return err.message;
+
+    return String(err);
+
+}
+
+
+function getExtension(name){
+
+    const match =
+        name.match(/\.[^/.]+$/);
+
+    return match
+        ? match[0].toLowerCase()
+        : ".mp4";
+
+}
+
+
+function formatBytes(bytes){
+
+    if(!bytes)
+        return "0 Bytes";
+
+
+    const units =
+        ["Bytes","KB","MB","GB"];
+
+
+    const i =
+        Math.floor(
+            Math.log(bytes) /
+            Math.log(1024)
+        );
+
+
+    return (
+        (bytes /
+        Math.pow(1024,i))
+        .toFixed(i === 0 ? 0 : 2)
+        + " "
+        + units[i]
+    );
+
+}
+
+</script>
+
+</body>
+  </html>
